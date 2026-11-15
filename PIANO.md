@@ -40,4 +40,5 @@ Ogni giorno sfondo e impaginazione cambiano. Con d = giorni dal 1970-01-01 (Euro
 - bg = ["scuro","chiaro","pieno"][d % 3]  → scuro = fondo scuro del tema · chiaro = fondo crema · pieno = fondo pieno nel colore del tema
 - layout = ["classico","basso","centrato","card"][(d + d//2) % 4]  → classico = volti in alto · basso = titolo in alto e volti in basso · centrato = tutto centrato · card = testo in un riquadro
 Il theme (colore) resta quello indicato dal piano. La storia si adatta da sola allo sfondo del post.
+Volti: render_post.py cambia da solo l'aspetto dei personaggi ogni giorno (pelle, capelli, accessori, espressione, colore di fondo, forma tonda o squadrata) in base alla data nel nome del file; il ruolo resta riconoscibile (cappello da chef, cuffie DJ, grembiule). Varia anche la scelta dei ruoli in people rispetto all'ultima volta che il servizio è uscito.
 Controllo: con "pieno" o "chiaro" verifica che le parole evidenziate siano leggibili; se la headline supera 3 righe abbassa size (es. 72).
