@@ -71,42 +71,78 @@ is_news = spec.get("kind") == "news"
 tag = "AI NEL MONDO" if is_news else "mAInd STUDIO · SERVIZI"
 deco = html.escape(spec.get("number", "AI" if is_news else "01"))
 n_people = len(spec.get("people") or [])
+
+# ---------- varianti: sfondo (bg) e impaginazione (layout) ----------
+# bg: "scuro" (default) | "chiaro" (crema) | "pieno" (fondo pieno nel colore del tema)
+# layout: "classico" (volti in alto) | "basso" (titolo in alto, volti in basso) | "centrato" | "card" (testo in un riquadro)
+DARK_AZ = {"blu":"#2F6FA3","corallo":"#C9462E","salvia":"#2B7D58","viola":"#6247CF","ambra":"#9C6C06","rosa":"#B8437A","petrolio":"#127A80"}
+bg_mode = spec.get("bg", "scuro"); layout = spec.get("layout", "classico")
+tname = spec.get("theme", "blu")
+if bg_mode == "chiaro":
+    V = dict(bg="#F5F0E6", fg=T["ink"], az=DARK_AZ.get(tname,"#2F6FA3"), muted=f"color-mix(in srgb,{T['ink']} 68%,#F5F0E6)",
+             line=f"color-mix(in srgb,{T['ink']} 14%,#F5F0E6)", pillbg="#FFFFFF", pillfg=T["ink"], tagbg=T["ink"], tagfg="#F5F0E6",
+             hlbg="transparent", hlfg=DARK_AZ.get(tname,"#2F6FA3"), panel="#FFFFFF", glow=".10", shadow="rgba(0,0,0,.14)")
+elif bg_mode == "pieno":
+    V = dict(bg=T["az"], fg=T["ink"], az=T["ink"], muted=f"color-mix(in srgb,{T['ink']} 82%,{T['az']})",
+             line=f"color-mix(in srgb,{T['ink']} 22%,{T['az']})", pillbg=T["ink"], pillfg=T["az"], tagbg=T["ink"], tagfg=T["az"],
+             hlbg=T["ink"], hlfg=T["az"], panel=f"color-mix(in srgb,#fff 35%,{T['az']})", glow=".0", shadow="rgba(0,0,0,.22)")
+else:
+    bg_mode = "scuro"
+    V = dict(bg=T["ink"], fg="#FFFFFF", az=T["az"], muted=T["muted"], line=T["line"], pillbg=f"color-mix(in srgb,{T['ink']} 90%,transparent)",
+             pillfg="#F1ECE2", tagbg=T["az"], tagfg=T["ink"], hlbg="transparent", hlfg=T["az"],
+             panel=f"color-mix(in srgb,{T['az']} 10%,{T['ink']})", glow=".30", shadow="rgba(0,0,0,.45)")
+size = spec.get("size", 80)
+if layout == "card": size = int(size * .9)
+avs = 150 if layout in ("centrato",) else (170 if layout in ("basso","card") else 200)
+center = layout == "centrato"
+
+LAYOUT_CSS = {
+ "classico": f".people{{margin-top:70px}} .txt{{margin-top:auto}} .deco{{right:56px;bottom:250px}}",
+ "basso":    f".txt{{margin-top:80px;order:2}} .people{{order:3;margin-top:auto}} .foot{{order:4}} .pp:nth-child(even){{margin-top:40px}} .deco{{right:40px;bottom:330px;font-size:340px;opacity:.7}}",
+ "centrato": f".people{{margin-top:70px;justify-content:center;gap:56px}} .pp:nth-child(even){{margin-top:0}} .txt{{margin-top:auto;text-align:center;display:flex;flex-direction:column;align-items:center}} .kicker{{justify-content:center}} .kicker:after{{content:'';width:56px;height:3px;background:var(--az)}} h1{{max-width:900px}} .body{{max-width:820px}} .deco{{left:50%;transform:translateX(-50%);bottom:300px;font-size:560px}}",
+ "card":     f".people{{margin-top:60px}} .txt{{margin-top:auto;background:var(--panel);border:2px solid var(--line);border-radius:36px;padding:48px 52px 52px;box-shadow:0 30px 70px var(--shadow)}} .txt .body{{margin-top:26px;font-size:31px}} .deco{{display:none}} .foot{{margin-top:44px}}",
+}
 page = f"""<!doctype html><html><head><meta charset="utf-8"><style>
-:root{{--ink:{T['ink']};--line:{T['line']};--az:{T['az']};--chalk:#F1ECE2;--text:#ECF1F6;--muted:{T['muted']}}}
+:root{{--bg:{V['bg']};--fg:{V['fg']};--line:{V['line']};--az:{V['az']};--muted:{V['muted']};--panel:{V['panel']};--shadow:{V['shadow']}}}
 *{{margin:0;padding:0;box-sizing:border-box}}
-html,body{{width:1080px;height:1350px;background:var(--ink);overflow:hidden}}
-body{{font-family:'Inter',sans-serif;color:var(--text);position:relative}}
+html,body{{width:1080px;height:1350px;background:var(--bg);overflow:hidden}}
+body{{font-family:'Inter',sans-serif;color:var(--fg);position:relative}}
 .grid{{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:90px 90px;opacity:.35;-webkit-mask-image:radial-gradient(ellipse at 85% 10%,#000 0%,transparent 65%)}}
-.glow{{position:absolute;width:900px;height:900px;right:-380px;top:-380px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--az) 30%,transparent),transparent 65%)}}
-.deco{{position:absolute;right:56px;bottom:250px;font-family:'Poppins';font-weight:700;font-size:420px;line-height:.8;color:transparent;-webkit-text-stroke:2px color-mix(in srgb,var(--az) 24%,transparent);letter-spacing:-10px}}
-.people{{position:absolute;left:84px;right:84px;top:250px;display:flex;justify-content:{'space-between' if n_people>=3 else 'center'};gap:{0 if n_people>=3 else 60}px}}
+.glow{{position:absolute;width:900px;height:900px;right:-380px;top:-380px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,{T['az']} 100%,transparent),transparent 65%);opacity:{V['glow']}}}
+.deco{{position:absolute;font-family:'Poppins';font-weight:700;font-size:420px;line-height:.8;color:transparent;-webkit-text-stroke:2px color-mix(in srgb,var(--az) 24%,transparent);letter-spacing:-10px}}
+.people{{display:flex;justify-content:{'space-between' if n_people>=3 and not center else 'center'};gap:{0 if n_people>=3 and not center else 60}px;padding:0 {0 if n_people>=3 else 0}px}}
 .pp{{display:flex;flex-direction:column;align-items:center;gap:18px}}
 .pp:nth-child(even){{margin-top:70px}}
-.av{{width:200px;height:200px;border-radius:50%;box-shadow:0 0 0 6px var(--ink),0 0 0 8px color-mix(in srgb,var(--az) 50%,transparent),0 24px 50px rgba(0,0,0,.45)}}
-.av svg{{width:200px;height:200px;display:block}}
-.pp span{{font-size:22px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--chalk);background:color-mix(in srgb,var(--ink) 90%,transparent);border:1px solid var(--line);padding:8px 18px;border-radius:999px}}
+.av{{width:{avs}px;height:{avs}px;border-radius:50%;box-shadow:0 0 0 6px var(--bg),0 0 0 8px color-mix(in srgb,var(--az) 50%,transparent),0 24px 50px var(--shadow)}}
+.av svg{{width:{avs}px;height:{avs}px;display:block}}
+.pp span{{font-size:22px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:{V['pillfg']};background:{V['pillbg']};border:1px solid var(--line);padding:8px 18px;border-radius:999px}}
 .wrap{{position:absolute;inset:0;padding:84px 84px 72px;display:flex;flex-direction:column}}
-.top{{display:flex;justify-content:space-between;align-items:center}}
-.logo{{font-family:'Poppins';font-weight:700;font-size:46px;line-height:1;letter-spacing:-1px}}
+.top{{display:flex;justify-content:space-between;align-items:center;order:0}}
+.people{{order:1}} .txt{{order:2}} .foot{{order:3}}
+.logo{{font-family:'Poppins';font-weight:700;font-size:46px;line-height:1;letter-spacing:-1px;color:var(--fg)}}
 .logo b{{color:var(--az)}}
 .logo small{{display:block;font-size:15px;font-weight:500;letter-spacing:11px;margin-top:6px;color:var(--muted)}}
-.tag{{font-size:22px;font-weight:600;letter-spacing:4px;color:var(--ink);background:var(--az);padding:14px 24px;border-radius:999px}}
-.kicker{{margin-top:auto;font-size:28px;font-weight:600;color:var(--az);letter-spacing:1px;text-transform:uppercase;margin-bottom:28px;display:flex;align-items:center;gap:18px}}
+.tag{{font-size:22px;font-weight:600;letter-spacing:4px;color:{V['tagfg']};background:{V['tagbg']};padding:14px 24px;border-radius:999px}}
+.kicker{{font-size:28px;font-weight:600;color:var(--az);letter-spacing:1px;text-transform:uppercase;margin-bottom:28px;display:flex;align-items:center;gap:18px}}
 .kicker:before{{content:"";width:56px;height:3px;background:var(--az)}}
-h1{{font-family:'Poppins';font-weight:700;font-size:{spec.get('size',92)}px;line-height:1.04;letter-spacing:-2.5px;color:#fff;max-width:930px}}
-h1 .hl{{color:var(--az)}}
+h1{{font-family:'Poppins';font-weight:700;font-size:{size}px;line-height:{1.16 if bg_mode=='pieno' else 1.06};letter-spacing:-2.5px;color:var(--fg);max-width:930px}}
+.hl{{color:{V['hlfg']};background:{V['hlbg']};{'padding:0 .14em;border-radius:.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone;' if bg_mode=='pieno' else ''}}}
+.body .hl{{background:transparent;color:var(--fg);font-weight:600;padding:0}}
 .body{{margin-top:36px;font-size:34px;line-height:1.42;color:var(--muted);max-width:860px}}
-.foot{{margin-top:60px;padding-top:30px;border-top:2px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:26px}}
-.foot .cta{{color:var(--chalk);font-weight:600}}
+.foot{{margin-top:56px;padding-top:30px;border-top:2px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:26px}}
+.foot .cta{{color:var(--fg);font-weight:600}}
 .foot .url{{color:var(--az);font-weight:600}}
+{LAYOUT_CSS.get(layout, LAYOUT_CSS['classico'])}
 </style></head><body>
 <div class="glow"></div><div class="grid"></div><div class="deco">{deco}</div>
-{people_html(spec.get('people'))}
 <div class="wrap">
  <div class="top"><div class="logo">m<b>AI</b>nd<small>STUDIO</small></div><div class="tag">{tag}</div></div>
- <div class="kicker">{html.escape(spec['kicker'])}</div>
- <h1>{hl(spec['headline'])}</h1>
- <div class="body">{hl(spec['body'])}</div>
+ {people_html(spec.get('people'))}
+ <div class="txt">
+  <div class="kicker">{html.escape(spec['kicker'])}</div>
+  <h1>{hl(spec['headline'])}</h1>
+  <div class="body">{hl(spec['body'])}</div>
+ </div>
  <div class="foot"><span class="cta">{html.escape(spec.get('cta','Scrivici in DM →'))}</span><span class="url">maindstudio.com</span></div>
 </div></body></html>"""
 d = tempfile.mkdtemp(); p = os.path.join(d, "post.html"); open(p, "w").write(page)

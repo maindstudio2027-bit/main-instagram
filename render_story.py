@@ -10,15 +10,24 @@ THEMES = {"blu":("#0F1A26","#28394D","#7FB8E0"),"corallo":("#1F1214","#4A2A2E","
           "viola":("#17132A","#352D52","#B59BFF"),"ambra":("#1C170D","#43381F","#F2C14E"),"rosa":("#24121C","#4F2A3E","#F59AC0"),
           "petrolio":("#0B1E22","#21454C","#5ED3D9")}
 ink, line, az = THEMES.get(theme, THEMES["blu"])
+fg = "#ECF1F6"
+try:  # adatta la storia allo sfondo del post (scuro / chiaro / pieno)
+    from PIL import Image
+    r, g, b = Image.open(post).convert("RGB").getpixel((12, 1338))
+    if (0.299*r + 0.587*g + 0.114*b) / 255 > 0.5:
+        bgc = "#%02X%02X%02X" % (r, g, b)
+        fg, az, line, ink = ink, ink, "rgba(0,0,0,.08)", bgc
+except Exception:
+    pass
 img = base64.b64encode(open(post, "rb").read()).decode()
 page = f"""<!doctype html><html><head><meta charset="utf-8"><style>
 *{{margin:0;padding:0;box-sizing:border-box}}
-html,body{{width:1080px;height:1920px;background:{ink};overflow:hidden;font-family:'Inter',sans-serif;color:#ECF1F6}}
+html,body{{width:1080px;height:1920px;background:{ink};overflow:hidden;font-family:'Inter',sans-serif;color:{fg}}}
 .grid{{position:absolute;inset:0;background-image:linear-gradient({line} 1px,transparent 1px),linear-gradient(90deg,{line} 1px,transparent 1px);background-size:90px 90px;opacity:.35}}
 .wrap{{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:56px;padding:0 64px}}
 .top{{font-family:'Poppins';font-weight:700;font-size:64px;letter-spacing:-1.5px;text-align:center}}
 .top b{{color:{az}}}
-.card{{width:880px;border-radius:36px;overflow:hidden;box-shadow:0 0 0 4px {az},0 40px 90px rgba(0,0,0,.55)}}
+.card{{width:880px;border-radius:36px;overflow:hidden;box-shadow:0 0 0 4px {az},0 40px 90px rgba(0,0,0,.35)}}
 .card img{{width:880px;display:block}}
 .bot{{font-size:36px;font-weight:600;color:{ink};background:{az};padding:22px 40px;border-radius:999px;text-align:center}}
 </style></head><body><div class="grid"></div><div class="wrap">

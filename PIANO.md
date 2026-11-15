@@ -33,4 +33,11 @@ SERVIZI: niente prezzi, numeri, clienti, città o testimonianze inventati (il si
 NOTIZIE: notizia AI delle ultime 48 ore utile per PMI italiane, verificata su 2 fonti, parafrasata, campione degli studi riportato correttamente, chiusura su cosa significa per una PMI (persone al centro, AI al fianco, niente allarmismo), "Fonte: …" nel copy.
 
 ## Spec grafica (render_post.py)
-kind, theme, people (preset: chef, beauty, studio, artigiano, barista, hotel, negozio, dj, titolare, staff; etichetta personalizzata con ["chef","Cucina"]), kicker (2-4 parole, evita "mAInd"), headline (max 9 parole, 1-2 parole chiave tra *asterischi*), size 80, body (max 25 parole), cta (max 5 parole + " →"), number.
+kind, theme, people (preset: chef, beauty, studio, artigiano, barista, hotel, negozio, dj, titolare, staff; etichetta personalizzata con ["chef","Cucina"]), kicker (2-4 parole, evita "mAInd"), headline (max 9 parole, 1-2 parole chiave tra *asterischi*), size 80, body (max 25 parole), cta (max 5 parole + " →"), number, bg, layout.
+
+## Varietà grafica (OBBLIGATORIA da 2026-11-16, vale anche in FASE 1)
+Ogni giorno sfondo e impaginazione cambiano. Con d = giorni dal 1970-01-01 (Europe/Rome):
+- bg = ["scuro","chiaro","pieno"][d % 3]  → scuro = fondo scuro del tema · chiaro = fondo crema · pieno = fondo pieno nel colore del tema
+- layout = ["classico","basso","centrato","card"][(d + d//2) % 4]  → classico = volti in alto · basso = titolo in alto e volti in basso · centrato = tutto centrato · card = testo in un riquadro
+Il theme (colore) resta quello indicato dal piano. La storia si adatta da sola allo sfondo del post.
+Controllo: con "pieno" o "chiaro" verifica che le parole evidenziate siano leggibili; se la headline supera 3 righe abbassa size (es. 72).
